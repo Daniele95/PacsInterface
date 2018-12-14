@@ -74,13 +74,12 @@ namespace GUI
 
             if (item != null && item.IsSelected)
             {               
-               string studyInstanceUID = ((StudyResponseQuery)item.Content).StudyInstanceUID.ToString();
-
-                SeriesLevelQuery query = new SeriesLevelQuery(studyInstanceUID);
+                SeriesLevelQuery query = new SeriesLevelQuery((StudyResponseQuery)item.Content);
 
                 QueryRetrieve q = new QueryRetrieve();
                 q.Event += mainWindow.downloadPage.showQueryResults;
                 mainWindow.frame.Navigate(mainWindow.downloadPage);
+                mainWindow.downloadPage.listView.Items.Clear();
                 q.find(query,"Series");
 
             }

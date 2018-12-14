@@ -33,26 +33,33 @@ namespace QueryRetrieveService
             if (level != "Study" && level != "Series" && level != "Image")
             { MessageBox.Show("incorrect level"); return; }
 
-            MethodInfo createQuery = typeof(DicomCFindRequest).GetMethod("Create"+level+"Query");
+            DicomQueryRetrieveLevel queryLevel = (DicomQueryRetrieveLevel) Enum.Parse(typeof(DicomQueryRetrieveLevel), level);
+            DicomCFindRequest cfind = new DicomCFindRequest(queryLevel);
+            Type tipo = query.GetType();
+            PropertyInfo[] properties1 = tipo.GetProperties();
 
-
-            PropertyInfo[] properties1 = query.GetType().GetProperties();
-
-            object[] props = new object[properties1.Length];
-            for (int i= 0; i < properties1.Length; i++)
+            foreach(PropertyInfo property in properties1)
             {
-                props[i] = properties1[i].GetValue(query);
+                var tag = typeof(DicomTag).GetField(property.Name).GetValue(null);
+                DicomTag theTag = (DicomTag.Parse(tag.ToString()));
+
+                var variabile = property.GetValue(query);
+                if (variabile.GetType().ToString() == "System.String")
+                {
+                    String a = (String)variabile;
+                    cfind.Dataset.Add(theTag, a);
+                }
+                if (variabile.GetType().ToString() == "Dicom.DicomDateRange")
+                {
+                    DicomDateRange a = (DicomDateRange)variabile;
+                    cfind.Dataset.Add(theTag, a);
+                }
             }
-
-
-            DicomCFindRequest cfind =(DicomCFindRequest) createQuery.Invoke(null, props);
-
 
             cfind.OnResponseReceived = (DicomCFindRequest rq, DicomCFindResponse rp) => {
                 if (rp.HasDataset)
                 {
                     var type = Type.GetType("QueryRetrieveService."+level+"ResponseQuery");
-                    Console.WriteLine(type.ToString());
                     var response = (QueryObject)Activator.CreateInstance(type);
 
                     PropertyInfo[] properties = response.GetType().GetProperties();

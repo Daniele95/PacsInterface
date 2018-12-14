@@ -27,15 +27,17 @@
         <DockPanel Grid.Row="0" Grid.RowSpan="5">
             <StackPanel Name="stackPanel"></StackPanel>
         </DockPanel>
-        <StackPanel Name="stackPanel2"  HorizontalAlignment="Left" Height="191" VerticalAlignment="Top" Width="522" Margin="141,0,0,0" Grid.Row="1">
-            <ListView x:Name="listView" Height="291">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListViewItem}">
-                        <EventSetter Event="UIElement.PreviewMouseLeftButtonDown" Handler="onMouseDown" />
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
-        </StackPanel>
+        <DockPanel Grid.Row="1" Grid.RowSpan="4" Grid.Column="1" Grid.ColumnSpan="4" Margin="0,0,0,10">
+            <StackPanel Name="stackPanel2"  HorizontalAlignment="Left" Height="191" VerticalAlignment="Top" Width="522" Margin="0,0,0,0" Grid.Row="1">
+                <ListView x:Name="listView" Height="193" >
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <EventSetter Event="UIElement.PreviewMouseLeftButtonDown" Handler="onMouseDown" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </StackPanel>
+        </DockPanel>
 
     </Grid>
 
