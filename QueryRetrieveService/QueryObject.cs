@@ -1,9 +1,23 @@
 ﻿using Dicom;
 using System;
+using System.Windows;
 
 namespace QueryRetrieveService
 {
+    public class SeriesResponseQuery : QueryObject
+    {
+        public string SeriesInstanceUID { get; set; } = "";
+    }
+    public class SeriesLevelQuery : QueryObject
+    {
+        public string StudyInstanceUID { get; set; } = "";
+        public string Modality { get; set; } = "";
 
+        public SeriesLevelQuery(string studyInstanceUID)
+        {
+            StudyInstanceUID = studyInstanceUID;
+        }
+    }
     public class StudyResponseQuery : QueryObject
     {
         public string StudyInstanceUID { get; set; } = "";

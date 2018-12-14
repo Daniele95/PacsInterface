@@ -8,10 +8,10 @@ namespace QueryRetrieveService
 {
     public abstract class Publisher
     {
-        public delegate void EventHandler(StudyResponseQuery s);
+        public delegate void EventHandler(QueryObject s);
         public event EventHandler Event;
 
-        public void RaiseEvent(StudyResponseQuery s)
+        public void RaiseEvent(QueryObject s)
         {
             Event(s);
         }
@@ -27,33 +27,33 @@ namespace QueryRetrieveService
             client.AddRequest(cmove);
             client.Send("localhost", 11112, false, "USER", "MIOSERVER");
         }
-
-        public void doStudyQuery(StudyLevelQuery query)
+        
+        public void find(QueryObject query, string level)
         {
-            MethodInfo createStudyQuery = typeof(DicomCFindRequest).GetMethod("CreateStudyQuery");
+            if (level != "Study" && level != "Series" && level != "Image")
+            { MessageBox.Show("incorrect level"); return; }
+
+            MethodInfo createQuery = typeof(DicomCFindRequest).GetMethod("Create"+level+"Query");
+
 
             PropertyInfo[] properties1 = query.GetType().GetProperties();
 
-            object[] props = new object[properties1.Length] ;
-            for (int i= 0; i < properties1.Length; i++) 
+            object[] props = new object[properties1.Length];
+            for (int i= 0; i < properties1.Length; i++)
+            {
                 props[i] = properties1[i].GetValue(query);
+            }
 
 
-            /* without reflection would be like this:
-            var cfind = DicomCFindRequest.CreateStudyQuery(
-                patientName: query.PatientName,
-                studyDateTime: new DicomDateRange(query.StudyDateMin, query.StudyDateMax),
-                modalitiesInStudy: query.Modality
-            );
-            */
-
-            DicomCFindRequest cfind =(DicomCFindRequest) createStudyQuery.Invoke(null, props);
+            DicomCFindRequest cfind =(DicomCFindRequest) createQuery.Invoke(null, props);
 
 
             cfind.OnResponseReceived = (DicomCFindRequest rq, DicomCFindResponse rp) => {
                 if (rp.HasDataset)
                 {
-                    var response = new StudyResponseQuery();
+                    var type = Type.GetType("QueryRetrieveService."+level+"ResponseQuery");
+                    Console.WriteLine(type.ToString());
+                    var response = (QueryObject)Activator.CreateInstance(type);
 
                     PropertyInfo[] properties = response.GetType().GetProperties();
                     foreach (PropertyInfo property in properties)

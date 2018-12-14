@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Dicom;
@@ -16,7 +18,6 @@ namespace GUI
         {
             this.mainWindow = mainWindow;
             InitializeComponent();
-
         }
 
         private void onLocalSearchButtonClicked(object sender, RoutedEventArgs e)
@@ -41,29 +42,50 @@ namespace GUI
             QueryRetrieve q = new QueryRetrieve();
             q.Event += showQueryResults;
             listView.Items.Clear();
-            q.doStudyQuery(query);
+            q.find(query,"Study");
             
+        }
+
+        private void showQueryResults(QueryObject response)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+
+                // Add columns
+                var gridView = new GridView();
+                listView.View = gridView;
+
+                PropertyInfo[] properties = response.GetType().GetProperties();
+                foreach(PropertyInfo property in properties)
+                    gridView.Columns.Add(new GridViewColumn
+                    {
+                        Header = property.Name,
+                        DisplayMemberBinding = new Binding(property.Name)
+                    });
+
+
+                listView.Items.Add(response);
+            }), DispatcherPriority.ContextIdle);
         }
 
         private void onMouseDown(object sender, MouseButtonEventArgs e)
         {
             ListViewItem item = sender as ListViewItem;
+
             if (item != null && item.IsSelected)
-            {
-                MessageBox.Show("now do series query");
-                // get studyInstanceUID
-               // item.id;
-               // mainWindow.frame.
+            {               
+               string studyInstanceUID = ((StudyResponseQuery)item.Content).StudyInstanceUID.ToString();
+
+                SeriesLevelQuery query = new SeriesLevelQuery(studyInstanceUID);
+
+                QueryRetrieve q = new QueryRetrieve();
+                q.Event += mainWindow.downloadPage.showQueryResults;
+                mainWindow.frame.Navigate(mainWindow.downloadPage);
+                q.find(query,"Series");
+
             }
         }
 
-        private void showQueryResults(StudyResponseQuery s)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                listView.Items.Add(s);
-            }), DispatcherPriority.ContextIdle);
-        }
 
         private string patientFullName(TextBox patientNameBox, TextBox patientSurnameBox)
         {

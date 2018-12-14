@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls;
+﻿using System;
+using System.Windows;
+using System.Windows.Controls;
+using QueryRetrieveService;
 
 namespace GUI
 {
@@ -7,6 +10,11 @@ namespace GUI
         public DownloadPage()
         {
             InitializeComponent();
+        }
+
+        internal void showQueryResults(QueryObject s)
+        {
+            MessageBox.Show("arrivato|!");
         }
     }
 }

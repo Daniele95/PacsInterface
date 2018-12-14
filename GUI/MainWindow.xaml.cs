@@ -5,8 +5,8 @@ namespace GUI
 {
     public partial class MainWindow : Window
     {
-        QueryPage queryPage;
-        DownloadPage downloadPage;
+        public QueryPage queryPage;
+        public DownloadPage downloadPage;
       //  ExplorerLogic explorerLogic;
 
         public MainWindow()

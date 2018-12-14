@@ -14,14 +14,6 @@
         </Grid.RowDefinitions>
         <StackPanel Name="stackPanel"  HorizontalAlignment="Left" Height="191" VerticalAlignment="Top" Width="522" Margin="141,125.308,0,0" Grid.Row="1">
             <ListView x:Name="listView" Height="188">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Width="0" Header="StudyInstanceUID" DisplayMemberBinding="{Binding StudyInstanceUID}"/>
-                        <GridViewColumn Width="100"  Header="PatientName" DisplayMemberBinding="{Binding PatientName}"/>
-                        <GridViewColumn  Width="100" Header="StudyDate" DisplayMemberBinding="{Binding StudyDate}"/>
-                        <GridViewColumn Width="100" Header="Modality" DisplayMemberBinding="{Binding Modality}"/>
-                    </GridView>
-                </ListView.View>
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <EventSetter Event="PreviewMouseLeftButtonDown" Handler="onMouseDown" />
