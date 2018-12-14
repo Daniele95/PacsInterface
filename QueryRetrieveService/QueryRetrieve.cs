@@ -1,6 +1,8 @@
 ﻿using Dicom;
 using Dicom.Network;
 using System;
+using System.Reflection;
+using System.Windows;
 
 namespace QueryRetrieveService
 {
@@ -26,30 +28,43 @@ namespace QueryRetrieveService
             client.Send("localhost", 11112, false, "USER", "MIOSERVER");
         }
 
-        public void find(StudyLevelQuery query)
+        public void doStudyQuery(StudyLevelQuery query)
         {
+            MethodInfo createStudyQuery = typeof(DicomCFindRequest).GetMethod("CreateStudyQuery");
+
+            PropertyInfo[] properties1 = query.GetType().GetProperties();
+
+            object[] props = new object[properties1.Length] ;
+            for (int i= 0; i < properties1.Length; i++) 
+                props[i] = properties1[i].GetValue(query);
+
+
+            /* without reflection would be like this:
             var cfind = DicomCFindRequest.CreateStudyQuery(
-             //   patientId: query.PatientID,
                 patientName: query.PatientName,
                 studyDateTime: new DicomDateRange(query.StudyDateMin, query.StudyDateMax),
-             //   accession: query.AccessionNumber,
-                // studyid:
                 modalitiesInStudy: query.Modality
-           //     studyInstanceUid: query.StudyInstanceUID
-              );
+            );
+            */
+
+            DicomCFindRequest cfind =(DicomCFindRequest) createStudyQuery.Invoke(null, props);
+
+
             cfind.OnResponseReceived = (DicomCFindRequest rq, DicomCFindResponse rp) => {
                 if (rp.HasDataset)
                 {
                     var response = new StudyResponseQuery();
-                    response.PatientName = rp.Dataset.GetValues<string>(DicomTag.PatientName)[0];
-                    response.StudyDate = rp.Dataset.GetValues<string>(DicomTag.StudyDate)[0];
-                  //  response.Modality = rp.Dataset.GetValues<string>(DicomTag.Modality)[0];
+
+                    PropertyInfo[] properties = response.GetType().GetProperties();
+                    foreach (PropertyInfo property in properties)
+                    {
+                        var tag = typeof(DicomTag).GetField(property.Name).GetValue(null);
+                        property.SetValue(response, rp.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0]);
+                    }
 
                     RaiseEvent(response);
                 }
-            
             };
-
 
             var client = new DicomClient();
             client.AddRequest(cfind);

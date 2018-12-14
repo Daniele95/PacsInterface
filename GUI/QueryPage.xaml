@@ -16,11 +16,17 @@
             <ListView x:Name="listView" Height="188">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="PatientName" DisplayMemberBinding="{Binding PatientName}"/>
-                        <GridViewColumn Header="StudyDate" DisplayMemberBinding="{Binding StudyDate}"/>
-                        <GridViewColumn Header="Modality" DisplayMemberBinding="{Binding Modality}"/>
+                        <GridViewColumn Width="0" Header="StudyInstanceUID" DisplayMemberBinding="{Binding StudyInstanceUID}"/>
+                        <GridViewColumn Width="100"  Header="PatientName" DisplayMemberBinding="{Binding PatientName}"/>
+                        <GridViewColumn  Width="100" Header="StudyDate" DisplayMemberBinding="{Binding StudyDate}"/>
+                        <GridViewColumn Width="100" Header="Modality" DisplayMemberBinding="{Binding Modality}"/>
                     </GridView>
                 </ListView.View>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="onMouseDown" />
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
         </StackPanel>
         <Button x:Name="button" Content="Search remote" HorizontalAlignment="Left" Margin="404,65.308,0,0" VerticalAlignment="Top" Width="75" Height="22" Click="onRemoteSearchButtonClicked" Grid.Row="1">

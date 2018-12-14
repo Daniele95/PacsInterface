@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
+using Dicom;
 using QueryRetrieveService;
 
 namespace GUI
@@ -15,7 +17,6 @@ namespace GUI
             this.mainWindow = mainWindow;
             InitializeComponent();
 
-
         }
 
         private void onLocalSearchButtonClicked(object sender, RoutedEventArgs e)
@@ -26,25 +27,39 @@ namespace GUI
         private void onRemoteSearchButtonClicked(object sender, RoutedEventArgs e)
         {
             StudyLevelQuery query = new StudyLevelQuery();
+            DateTime start = DateTime.Today.AddYears(-100), end = DateTime.Today;
             if (StudyDateStartPicker.SelectedDate != null)
-                query.StudyDateMin = StudyDateStartPicker.SelectedDate.Value;
+                start = StudyDateStartPicker.SelectedDate.Value;
             if (StudyDateEndPicker.SelectedDate != null)
-                query.StudyDateMax = StudyDateEndPicker.SelectedDate.Value;
-            query.StudyDateMax = query.StudyDateMax.AddSeconds(86399);
-         //   s.PatientBirthDate = dateRange(PatientBirthDateStartPicker, PatientBirthDateEndPicker);
+                end =  StudyDateEndPicker.SelectedDate.Value;
+            end = end.AddSeconds(86399);
+
+            query.StudyDate = new DicomDateRange(start, end);
             query.PatientName = patientFullName(PatientNameBox, PatientSurnameBox);
             query.Modality = ModalityBox.Text.ToString();
-            //   q.StudyDescription = StudyDescriptionBox.Text.ToString();
 
             QueryRetrieve q = new QueryRetrieve();
             q.Event += showQueryResults;
-            q.find(query);
+            listView.Items.Clear();
+            q.doStudyQuery(query);
+            
+        }
 
+        private void onMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ListViewItem item = sender as ListViewItem;
+            if (item != null && item.IsSelected)
+            {
+                MessageBox.Show("now do series query");
+                // get studyInstanceUID
+               // item.id;
+               // mainWindow.frame.
+            }
         }
 
         private void showQueryResults(StudyResponseQuery s)
         {
-            this.Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 listView.Items.Add(s);
             }), DispatcherPriority.ContextIdle);
@@ -56,26 +71,14 @@ namespace GUI
             string surname = patientSurnameBox.Text.ToString();
 
             string patientFullName="";
-            if (name != "") patientFullName += "*";
-            if (surname != "")  patientFullName += "*";
+            if (name != "" && surname != "") patientFullName += surname + "^"+ name;
+            if (name == "") patientFullName += "*" + surname +"*";
+            if (surname == "") patientFullName += "*"+name + "*";
 
             return patientFullName;
         }
 
-
-        public void getQueryFields()
-        {
-           // StudyLevelQuery querySettings = new StudyLevelQuery();
-
-           // querySettings.SetField("PatientName", PatientNameBox.Text);
-           // querySettings.SetField("PatientBirthDate", PatientBirthDatePicker.Text);
-          //  querySettings.SetField("StudyDate", StudyDatePicker.Text);
-           // querySettings.SetField("StudyDescription", StudyDescriptionBox.Text);
-           // querySettings.SetField("Modality", ModalityBox.Text);
-
-           // return querySettings;
-
-        }
+        
         
     }
 }
