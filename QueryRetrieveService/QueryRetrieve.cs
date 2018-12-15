@@ -19,6 +19,14 @@ namespace QueryRetrieveService
     public class QueryRetrieve : Publisher
     {
 
+        public delegate void ConnectionClosed();
+        public event ConnectionClosed OnConnectionClosed;
+
+        public void RaiseConnectionClosed()
+        {
+            OnConnectionClosed();
+        }
+
         public void move ()
         {
             var cmove = new DicomCMoveRequest("USER", "1.3.6.1.4.1.5962.1.1.0.0.0.1196527414.5534.0.1");
@@ -73,14 +81,13 @@ namespace QueryRetrieveService
                 }
             };
 
+
             var client = new DicomClient();
             client.AddRequest(cfind);
+            client.AssociationReleased += (sender,e)=> { RaiseConnectionClosed(); };
             client.Send("localhost", 11112, false, "USER", "MIOSERVER");
 
         }
-
-
-
 
     }
 }

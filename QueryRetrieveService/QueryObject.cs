@@ -4,9 +4,27 @@ using System.Windows;
 
 namespace QueryRetrieveService
 {
+
+    public class ImageResponseQuery : QueryObject
+    {
+        public string InstanceNumber { get; set; } = "";
+    }
+    public class ImageLevelQuery : QueryObject
+    {
+        public string StudyInstanceUID { get; set; } = "";
+        public string SeriesInstanceUID { get; set; } = "";
+        public string InstanceNumber { get; set; } = "";
+
+        public ImageLevelQuery(SeriesResponseQuery response)
+        {
+            SeriesInstanceUID = response.SeriesInstanceUID;
+            StudyInstanceUID = response.StudyInstanceUID;
+        }
+    }
     public class SeriesResponseQuery : QueryObject
     {
         public string SeriesInstanceUID { get; set; } = "";
+        public string StudyInstanceUID { get; set; } = "";
     }
     public class SeriesLevelQuery : QueryObject
     {

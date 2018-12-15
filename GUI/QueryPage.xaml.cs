@@ -41,9 +41,14 @@ namespace GUI
 
             QueryRetrieve q = new QueryRetrieve();
             q.Event += showQueryResults;
+            q.OnConnectionClosed += studyArrived;
             listView.Items.Clear();
             q.find(query,"Study");
             
+        }
+
+        private void studyArrived()
+        {
         }
 
         private void showQueryResults(QueryObject response)
@@ -80,11 +85,15 @@ namespace GUI
                 q.Event += mainWindow.downloadPage.showQueryResults;
                 mainWindow.frame.Navigate(mainWindow.downloadPage);
                 mainWindow.downloadPage.listView.Items.Clear();
+                q.OnConnectionClosed += seriesArrived;
                 q.find(query,"Series");
 
             }
         }
 
+        private void seriesArrived()
+        {
+        }
 
         private string patientFullName(TextBox patientNameBox, TextBox patientSurnameBox)
         {

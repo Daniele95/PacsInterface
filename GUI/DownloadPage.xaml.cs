@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,18 +16,19 @@ namespace GUI
         {
             InitializeComponent();
         }
+        List<ImageResponseQuery> images;
 
         internal void showQueryResults(QueryObject response)
-        {// image query 
+        {
 
-/*          SeriesLevelQuery query = new SeriesLevelQuery(studyInstanceUID);
+            ImageLevelQuery query = new ImageLevelQuery((SeriesResponseQuery)response);
 
             QueryRetrieve q = new QueryRetrieve();
-            q.Event += mainWindow.downloadPage.showQueryResults;
-            mainWindow.frame.Navigate(mainWindow.downloadPage);
-            mainWindow.downloadPage.listView.Items.Clear();
-            q.find(query, "Series");
-            */
+            q.Event += showQueryResults2;
+            q.OnConnectionClosed += imagesArrived;
+            images = new List<ImageResponseQuery>();
+            q.find(query, "Image");
+
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -47,6 +49,17 @@ namespace GUI
 
                 listView.Items.Add(response);
             }), DispatcherPriority.ContextIdle);
+
+        }
+
+        private void imagesArrived()
+        {
+            int imageToDownload = (int)(images.Count / 2.0f);
+        }
+
+        void showQueryResults2(QueryObject response)
+        {
+            images.Add((ImageResponseQuery)response);
         }
 
         private void onMouseDown(object sender, MouseButtonEventArgs e)
