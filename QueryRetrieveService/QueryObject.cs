@@ -7,13 +7,14 @@ namespace QueryRetrieveService
 
     public class ImageResponseQuery : QueryObject
     {
-        public string InstanceNumber { get; set; } = "";
+        public string SOPInstanceUID { get; set; } = "";
     }
     public class ImageLevelQuery : QueryObject
     {
         public string StudyInstanceUID { get; set; } = "";
         public string SeriesInstanceUID { get; set; } = "";
-        public string InstanceNumber { get; set; } = "";
+        public string SOPInstanceUID { get; set; } = "";
+        public string InstanceNumber { get; set; } = "1";
 
         public ImageLevelQuery(SeriesResponseQuery response)
         {

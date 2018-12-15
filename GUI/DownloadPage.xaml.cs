@@ -16,54 +16,39 @@ namespace GUI
         {
             InitializeComponent();
         }
-        List<ImageResponseQuery> images;
 
-        internal void showQueryResults(QueryObject response)
+        internal void showQueryResults(List<QueryObject> allResponses)
         {
-
-            ImageLevelQuery query = new ImageLevelQuery((SeriesResponseQuery)response);
-
-            QueryRetrieve q = new QueryRetrieve();
-            q.Event += showQueryResults2;
-            q.OnConnectionClosed += imagesArrived;
-            images = new List<ImageResponseQuery>();
-            q.find(query, "Image");
-
-
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                foreach (QueryObject response in allResponses) { 
+                    // Add columns
+                    var gridView = new GridView();
+                    listView.View = gridView;
 
-                // Add columns
-                var gridView = new GridView();
-                listView.View = gridView;
+                    PropertyInfo[] properties = response.GetType().GetProperties();
 
-                PropertyInfo[] properties = response.GetType().GetProperties();
-
-                foreach (PropertyInfo property in properties)
-                    gridView.Columns.Add(new GridViewColumn
-                    {
-                        Header = property.Name,
-                        DisplayMemberBinding = new Binding(property.Name)
-                    });
+                    foreach (PropertyInfo property in properties)
+                        gridView.Columns.Add(new GridViewColumn
+                        {
+                            Header = property.Name,
+                            DisplayMemberBinding = new Binding(property.Name)
+                        });
 
 
-                listView.Items.Add(response);
+                    listView.Items.Add(response);
+                }
             }), DispatcherPriority.ContextIdle);
 
         }
 
-        private void imagesArrived()
-        {
-            int imageToDownload = (int)(images.Count / 2.0f);
-        }
-
-        void showQueryResults2(QueryObject response)
-        {
-            images.Add((ImageResponseQuery)response);
-        }
-
         private void onMouseDown(object sender, MouseButtonEventArgs e)
         {
+        }
+
+        internal void allSeriesArrived()
+        {
+
         }
     }
 }

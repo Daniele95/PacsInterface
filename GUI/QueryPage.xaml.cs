@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Dicom;
 using QueryRetrieveService;
+using System.Drawing;
 
 namespace GUI
 {
@@ -39,15 +41,15 @@ namespace GUI
             query.PatientName = patientFullName(PatientNameBox, PatientSurnameBox);
             query.Modality = ModalityBox.Text.ToString();
 
-            QueryRetrieve q = new QueryRetrieve();
-            q.Event += showQueryResults;
-            q.OnConnectionClosed += studyArrived;
+            QueryRetrieve retrieveStudy = new QueryRetrieve();
+            retrieveStudy.OnDatasetArrived += showQueryResults;
+            retrieveStudy.OnConnectionClosed += AllStudyArrived;
             listView.Items.Clear();
-            q.find(query,"Study");
+            retrieveStudy.find(query,"Study");
             
         }
 
-        private void studyArrived()
+        private void AllStudyArrived(List<QueryObject> l)
         {
         }
 
@@ -78,22 +80,28 @@ namespace GUI
             ListViewItem item = sender as ListViewItem;
 
             if (item != null && item.IsSelected)
-            {               
-                SeriesLevelQuery query = new SeriesLevelQuery((StudyResponseQuery)item.Content);
-
-                QueryRetrieve q = new QueryRetrieve();
-                q.Event += mainWindow.downloadPage.showQueryResults;
+            {                               
                 mainWindow.frame.Navigate(mainWindow.downloadPage);
                 mainWindow.downloadPage.listView.Items.Clear();
-                q.OnConnectionClosed += seriesArrived;
-                q.find(query,"Series");
 
+                GetQueryResponsesList g = new GetQueryResponsesList();
+
+                SeriesLevelQuery query = new SeriesLevelQuery((StudyResponseQuery)item.Content);
+
+                List<QueryObject> allSeries = g.getResponsesList(query, "Series");
+
+                List<Bitmap> immagini = new List<Bitmap>();
+                
+                foreach (SeriesResponseQuery series in allSeries)
+                {
+                    GetSeriesData getImage = new GetSeriesData();
+                    immagini.Add(GetSeriesData.getImage(series));
+                }
+                
+                mainWindow.downloadPage.showQueryResults(allSeries);
             }
         }
 
-        private void seriesArrived()
-        {
-        }
 
         private string patientFullName(TextBox patientNameBox, TextBox patientSurnameBox)
         {
