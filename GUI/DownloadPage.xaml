@@ -6,9 +6,16 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="DownloadPage">
-
-
-    <Grid>
+    <Page.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="iconTemplate">
+                <Image Source="{Binding Icon}"
+                   Width="64"
+                   Height="64"/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Page.Resources>
+        <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>

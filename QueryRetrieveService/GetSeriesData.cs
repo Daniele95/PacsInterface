@@ -45,7 +45,7 @@ namespace QueryRetrieveService
 
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {
-            MessageBox.Show("file rated");
+         //   MessageBox.Show("file rated");
         }
     }
 }

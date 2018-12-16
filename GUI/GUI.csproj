@@ -60,6 +60,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="handleImages.cs" />
     <Compile Include="QueryPage.xaml.cs">
       <DependentUpon>QueryPage.xaml</DependentUpon>
     </Compile>
