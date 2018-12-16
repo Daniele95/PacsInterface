@@ -90,6 +90,7 @@ namespace GUI
 
                 List<QueryObject> allSeries = g.getResponsesList(query, "Series");
 
+                
                 List<Bitmap> immagini = new List<Bitmap>();
                 
                 foreach (SeriesResponseQuery series in allSeries)
@@ -98,7 +99,7 @@ namespace GUI
                     immagini.Add(GetSeriesData.getImage(series));
                 }
                 
-                mainWindow.downloadPage.showQueryResults(allSeries);
+                mainWindow.downloadPage.showQueryResults(allSeries,immagini);
             }
         }
 

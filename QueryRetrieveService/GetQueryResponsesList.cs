@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 
@@ -7,7 +6,6 @@ namespace QueryRetrieveService
 {
     public class GetQueryResponsesList : Publisher
     {
-
         static ManualResetEvent manualResetEvent = new ManualResetEvent(false);
         List<QueryObject> queryResponses = new List<QueryObject>();
 
@@ -15,9 +13,10 @@ namespace QueryRetrieveService
         {
             QueryRetrieve retrieveSeries = new QueryRetrieve();
 
-            retrieveSeries.OnDatasetArrived += gotASeries;
+            retrieveSeries.OnDatasetArrived += gotADataset;
             retrieveSeries.OnConnectionClosed += (seriesList) => { gotAllSeries(); };
 
+            // LAUNCH QUERY COMMAND:
             retrieveSeries.find(query, level);
 
             manualResetEvent.Reset();
@@ -27,13 +26,12 @@ namespace QueryRetrieveService
             return queryResponses;
         }
 
-        private void gotASeries(QueryObject s)
+        private void gotADataset(QueryObject s)
         {
             queryResponses.Add(s);
         }
         private void gotAllSeries()
         {
-            Console.WriteLine("se non aspetto qui va in timeout!!");
             manualResetEvent.Set();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Navigation;
+using QueryRetrieveService;
 
 namespace GUI
 {
@@ -7,6 +8,7 @@ namespace GUI
     {
         public QueryPage queryPage;
         public DownloadPage downloadPage;
+        public GUILogic guiLogic;
       //  ExplorerLogic explorerLogic;
 
         public MainWindow()
@@ -15,6 +17,7 @@ namespace GUI
 
             queryPage = new QueryPage(this);
             downloadPage = new DownloadPage();
+            guiLogic = new GUILogic();
          //   explorerLogic = new ExplorerLogic();
             frame.NavigationService.Navigate(queryPage);
         }

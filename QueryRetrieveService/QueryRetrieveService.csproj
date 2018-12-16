@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CStoreSCP.cs" />
+    <Compile Include="GUILogic.cs" />
     <Compile Include="GetSeriesData.cs" />
     <Compile Include="GetQueryResponsesList.cs" />
     <Compile Include="QueryObject.cs" />

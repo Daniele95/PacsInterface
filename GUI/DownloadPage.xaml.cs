@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -17,7 +17,7 @@ namespace GUI
             InitializeComponent();
         }
 
-        internal void showQueryResults(List<QueryObject> allResponses)
+        internal void showQueryResults(List<QueryObject> allResponses, List<Bitmap> images)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {

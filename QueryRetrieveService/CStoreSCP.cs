@@ -1,6 +1,4 @@
 ﻿using System;using Dicom; using Dicom.Network;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dicom.Log;
@@ -81,15 +79,16 @@ namespace Listener
             
 
             var path = Path.GetFullPath(@"./images");
-            path = Path.Combine(path, patientName, studyDescription, seriesDescription);
+           // path = Path.Combine(path, patientName, studyDescription, seriesDescription);
 
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+          //  if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-            path = Path.Combine(path, instanceNumber) + ".dcm";
+            path = Path.Combine(path, "file") + ".dcm";
 
             request.File.Save(path);
 
             return new DicomCStoreResponse(request, DicomStatus.Success);
+
         }
 
 

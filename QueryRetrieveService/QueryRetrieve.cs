@@ -3,7 +3,9 @@ using Dicom.Network;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using System.Windows;
+
 
 namespace QueryRetrieveService
 {
@@ -24,17 +26,35 @@ namespace QueryRetrieveService
         {
             OnConnectionClosed(l);
         }
-
     }
 
     public class QueryRetrieve : Publisher
     {
-
         List<QueryObject> queryResponses = new List<QueryObject>();
 
-        public void move ()
+        public void move (string callingAE, QueryObject query, string level)
         {
-            var cmove = new DicomCMoveRequest("USER", "1.3.6.1.4.1.5962.1.1.0.0.0.1196527414.5534.0.1");
+            var cmove = new DicomCMoveRequest("","");
+
+            if (query.GetType().ToString()== "QueryRetrieveService.StudyResponseQuery")
+            {
+                string studyId = ((StudyResponseQuery)query).StudyInstanceUID;
+                cmove = new DicomCMoveRequest(callingAE, studyId);
+            }
+            if (query.GetType().ToString() == "QueryRetrieveService.SeriesResponseQuery")
+            {
+                string studyId = ((SeriesResponseQuery)query).StudyInstanceUID;
+                string seriesId = ((SeriesResponseQuery)query).SeriesInstanceUID;
+                cmove = new DicomCMoveRequest(callingAE, studyId,seriesId);
+            }
+
+            if (query.GetType().ToString() == "QueryRetrieveService.ImageResponseQuery")
+            {
+                string studyId = ((ImageResponseQuery)query).StudyInstanceUID;
+                string seriesId = ((ImageResponseQuery)query).SeriesInstanceUID;
+                string imageId = ((ImageResponseQuery)query).SOPInstanceUID;
+                cmove = new DicomCMoveRequest(callingAE, studyId, seriesId, imageId);
+            }
 
             var client = new DicomClient();
             client.AddRequest(cmove);
@@ -70,7 +90,6 @@ namespace QueryRetrieveService
             }
 
             cfind.OnResponseReceived = (DicomCFindRequest rq, DicomCFindResponse rp) => {
-
                 if (rp.HasDataset)
                 {
                     var type = Type.GetType("QueryRetrieveService."+level+"ResponseQuery");
@@ -83,7 +102,6 @@ namespace QueryRetrieveService
                         var tag = typeof(DicomTag).GetField(property.Name).GetValue(null);
                         property.SetValue(response, rp.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0]);
                     }
-
                     RaiseEvent(response);
                 }
             };
@@ -92,7 +110,11 @@ namespace QueryRetrieveService
             var client = new DicomClient();
             client.AddRequest(cfind);
             client.AssociationReleased += (sender,e)=> {
+                // non può inviare la lista 'queryResponses' prima
+                // che 'cfind.OnResponseReceived' abbia finito di riempirla!!
+                Thread.Sleep(5);
                 RaiseConnectionClosed(queryResponses);
+
             };
             client.Send("localhost", 11112, false, "USER", "MIOSERVER");
 
