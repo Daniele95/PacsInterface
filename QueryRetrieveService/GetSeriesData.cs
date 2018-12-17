@@ -1,20 +1,21 @@
-﻿using Dicom.Imaging;
+﻿using Dicom;
+using Dicom.Imaging;
 using Dicom.Network;
 using Listener;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 
 namespace QueryRetrieveService
 {
     public class GetSeriesData
     {
+        public SeriesData seriesData;
 
-       
-
-        public static Bitmap getImage(SeriesResponseQuery series)
+        public  Bitmap getImage(SeriesResponseQuery series)
         {
             ImageLevelQuery query = new ImageLevelQuery(series);
 
@@ -35,13 +36,27 @@ namespace QueryRetrieveService
 
             QueryRetrieve q = new QueryRetrieve();
             q.move("IMAGEUSER",image, "Image");
-
+            //WAIT LISTENER
 
             var dicomImage = new DicomImage(Path.Combine(watcher.Path,"file.dcm"));
             Bitmap asd = dicomImage.RenderImage().AsClonedBitmap();
 
+            PropertyInfo[] p = typeof(SeriesData).GetProperties();
+            seriesData = new SeriesData();
+            foreach (PropertyInfo prop in p)
+            {
+                var tag = typeof(DicomTag).GetField(prop.Name).GetValue(null);
+                string value = dicomImage.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0];
+                prop.SetValue(seriesData, value);
+            }
+
             return asd;
         }
+        public QueryObject getSeriesData()
+        {
+            return seriesData;
+        }
+
 
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {

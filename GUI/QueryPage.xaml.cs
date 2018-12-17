@@ -63,14 +63,17 @@ namespace GUI
                 listView.View = gridView;
 
                 PropertyInfo[] properties = response.GetType().GetProperties();
-                foreach(PropertyInfo property in properties)
+                foreach (PropertyInfo property in properties)
+                {
+                    bool a = (property.Name == "StudyInstanceUID");
+                    int testInt = a ? 1 : 0;
                     gridView.Columns.Add(new GridViewColumn
                     {
                         Header = property.Name,
-                        DisplayMemberBinding = new Binding(property.Name)
+                        DisplayMemberBinding = new Binding(property.Name),
+                        Width = 100*(1-testInt)
                     });
-
-
+                }
                 listView.Items.Add(response);
             }), DispatcherPriority.ContextIdle);
         }
@@ -90,16 +93,18 @@ namespace GUI
 
                 List<QueryObject> allSeries = g.getResponsesList(query, "Series");
 
-                
+                // show data gained by image query
                 List<Bitmap> immagini = new List<Bitmap>();
-                
+                List<QueryObject> seriesData = new List<QueryObject>();
+
                 foreach (SeriesResponseQuery series in allSeries)
                 {
-                    GetSeriesData getImage = new GetSeriesData();
-                    immagini.Add(GetSeriesData.getImage(series));
+                    GetSeriesData getSeriesData = new GetSeriesData();
+                    immagini.Add(getSeriesData.getImage(series));
+                    seriesData.Add( getSeriesData.getSeriesData());
                 }
                 
-                mainWindow.downloadPage.showQueryResults(allSeries,immagini);
+                mainWindow.downloadPage.showQueryResults(seriesData, immagini);
             }
         }
 

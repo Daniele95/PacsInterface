@@ -1,9 +1,11 @@
 ﻿using GUI;
+using QueryRetrieveService;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,7 +21,7 @@ namespace GUI
         public string SourceField { get; set; }
     }
 
-    public static class handleImages
+    public static class downloadPage
     {
 
         //https://stackoverflow.com/questions/22499407/how-to-display-a-bitmap-in-a-wpf-image
@@ -28,20 +30,23 @@ namespace GUI
         {
             using (MemoryStream memory = new MemoryStream())
             {
+
+                BitmapImage bitmapimage = new BitmapImage();
+                try { 
                 bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
                 memory.Position = 0;
-                BitmapImage bitmapimage = new BitmapImage();
                 bitmapimage.BeginInit();
                 bitmapimage.StreamSource = memory;
                 bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapimage.EndInit();
+                } catch (Exception e) { MessageBox.Show("cannot read image.."); }
 
                 return bitmapimage;
             }
         }
 
 
-        public static void addImage(Bitmap asd, DownloadPage downloadPage)
+        public static void addMenuEntry(List<QueryObject> allResponses, List<Bitmap> asd, DownloadPage downloadPage)
         {
 
             GridView gridView = new GridView();
@@ -51,17 +56,18 @@ namespace GUI
             dynamic myItem;
             IDictionary<string, object> myItemValues;
 
-            var image = BitmapToImageSource(asd);
 
             // Populate the objects with dynamic columns
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < allResponses.Count;i++)
             {
+                var image = BitmapToImageSource(asd[i]);
                 myItem = new System.Dynamic.ExpandoObject();
 
-                foreach (string column in new string[] { "Id", "Name", "Something" })
+                PropertyInfo[] p = allResponses[i].GetType().GetProperties();
+                for (int j=0; j<p.Length; j++)
                 {
                     myItemValues = (IDictionary<string, object>)myItem;
-                    myItemValues[column] = "My value for " + column + " - " + i;
+                    myItemValues[p[j].Name] = p[j].GetValue(allResponses[i]);
                 }
 
                 myItem.Icon = image;
@@ -101,8 +107,15 @@ namespace GUI
                 }
                 else
                 {
-                    var binding = new Binding(column.SourceField);
-                    gridView.Columns.Add(new GridViewColumn { Header = column.Title, DisplayMemberBinding = binding });
+                    bool a = (column.Title == "StudyInstanceUID" || column.Title == "SeriesInstanceUID");
+                    int testInt = a ? 0 : 1; 
+
+                     var binding = new Binding(column.SourceField);
+                    gridView.Columns.Add(new GridViewColumn {
+                        Header = column.Title,
+                        DisplayMemberBinding = binding,
+                        Width = 100 * testInt
+                    });
                 }
 
 

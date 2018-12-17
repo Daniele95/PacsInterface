@@ -4,6 +4,15 @@ using System.Windows;
 
 namespace QueryRetrieveService
 {
+    public class SeriesData : QueryObject
+    {
+        public string SeriesDescription { get; set; } = "";
+        public string StudyDate { get; set; } = "";
+        public string Modality { get; set; } = "";
+        public string SeriesInstanceUID { get; set; } = "";
+        public string StudyInstanceUID { get; set; } = "";
+    }
+
 
     public class ImageResponseQuery : QueryObject
     {
@@ -28,6 +37,14 @@ namespace QueryRetrieveService
     {
         public string SeriesInstanceUID { get; set; } = "";
         public string StudyInstanceUID { get; set; } = "";
+
+        public SeriesResponseQuery()
+        { }
+        public SeriesResponseQuery(string studyInstanceUID,string seriesInstanceUID)
+        {
+            SeriesInstanceUID = seriesInstanceUID;
+            StudyInstanceUID = studyInstanceUID;
+        }
     }
     public class SeriesLevelQuery : QueryObject
     {

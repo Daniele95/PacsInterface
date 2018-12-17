@@ -9,8 +9,11 @@ namespace QueryRetrieveService
     public class GUILogic
     {
 
-        public IDicomServer imageListener = DicomServer.Create<CStoreSCP>(11117);
-        
+        public IDicomServer imageListener;
+        public GUILogic()
+        {
+            imageListener =  DicomServer.Create<CStoreSCP>( 11117);
+        }
 
     }
 }

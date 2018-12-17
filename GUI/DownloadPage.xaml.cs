@@ -25,26 +25,9 @@ namespace GUI
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                handleImages.addImage(images[0],this);
-                /*
-                for (int i = 0; i < allResponses.Count; i++)
-                {
-                    QueryObject response = allResponses[i];
-                    // Add columns
-                    var gridView = new GridView();
-                    listView.View = gridView;
-
-                    PropertyInfo[] properties = response.GetType().GetProperties();
-
-                    foreach (PropertyInfo property in properties)
-                        gridView.Columns.Add(new GridViewColumn
-                        {
-                            Header = property.Name,
-                            DisplayMemberBinding = new Binding(property.Name)
-                        });
-
-                }
-                */
+                downloadPage.addMenuEntry(allResponses,images,this);
+                
+                
             }), DispatcherPriority.ContextIdle);
 
         }
@@ -53,6 +36,21 @@ namespace GUI
 
         private void onMouseDown(object sender, MouseButtonEventArgs e)
         {
+            ListViewItem item = sender as ListViewItem;
+
+            if (item != null && item.IsSelected)
+            {
+                var obj = (IDictionary<string, object>)(item.Content);
+                MessageBox.Show(obj["SeriesInstanceUID"].ToString());
+                //DOWNLOAD!!!!!
+
+                QueryObject series = new SeriesResponseQuery(obj["StudyInstanceUID"].ToString(), obj["SeriesInstanceUID"].ToString());
+
+                QueryRetrieve q = new QueryRetrieve();
+                q.move("USER", series, "Series");
+
+
+            }
         }
 
         internal void allSeriesArrived()
