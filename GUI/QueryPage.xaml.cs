@@ -9,6 +9,7 @@ using System.Windows.Threading;
 using Dicom;
 using QueryRetrieveService;
 using System.Drawing;
+using System.Windows.Media.Imaging;
 
 namespace GUI
 {
@@ -93,18 +94,9 @@ namespace GUI
 
                 List<QueryObject> allSeries = g.getResponsesList(query, "Series");
 
-                // show data gained by image query
-                List<Bitmap> immagini = new List<Bitmap>();
-                List<QueryObject> seriesData = new List<QueryObject>();
-
-                foreach (SeriesResponseQuery series in allSeries)
-                {
-                    GetSeriesData getSeriesData = new GetSeriesData();
-                    immagini.Add(getSeriesData.getImage(series));
-                    seriesData.Add( getSeriesData.getSeriesData());
-                }
                 
-                mainWindow.downloadPage.showQueryResults(seriesData, immagini);
+                
+                mainWindow.downloadPage.showQueryResults(allSeries);
             }
         }
 

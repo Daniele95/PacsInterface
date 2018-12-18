@@ -21,11 +21,22 @@ namespace GUI
             InitializeComponent();
         }
 
-        internal void showQueryResults(List<QueryObject> allResponses, List<Bitmap> images)
+        internal void showQueryResults(List<QueryObject> allSeries)
         {
+            // show data gained by image query
+            List<BitmapImage> images = new List<BitmapImage>();
+            List<QueryObject> seriesData = new List<QueryObject>();
+
+            foreach (SeriesResponseQuery series in allSeries)
+            {
+                GetSeriesData getSeriesData = new GetSeriesData();
+                images.Add(getSeriesData.getImage(series));
+                seriesData.Add(getSeriesData.getSeriesData());
+            }
+
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                downloadPage.addMenuEntry(allResponses,images,this);
+                downloadPage.addMenuEntry(seriesData,images,this);
                 
                 
             }), DispatcherPriority.ContextIdle);

@@ -46,7 +46,7 @@ namespace GUI
         }
 
 
-        public static void addMenuEntry(List<QueryObject> allResponses, List<Bitmap> asd, DownloadPage downloadPage)
+        public static void addMenuEntry(List<QueryObject> allResponses, List<BitmapImage> asd, DownloadPage downloadPage)
         {
 
             GridView gridView = new GridView();
@@ -60,7 +60,7 @@ namespace GUI
             // Populate the objects with dynamic columns
             for (var i = 0; i < allResponses.Count;i++)
             {
-                var image = BitmapToImageSource(asd[i]);
+                var image = asd[i];
                 myItem = new System.Dynamic.ExpandoObject();
 
                 PropertyInfo[] p = allResponses[i].GetType().GetProperties();

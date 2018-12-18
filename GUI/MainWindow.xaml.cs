@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Navigation;
 using QueryRetrieveService;
 
@@ -13,10 +14,15 @@ namespace GUI
         public MainWindow()
         {
             InitializeComponent();
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
             queryPage = new QueryPage(this);
             downloadPage = new DownloadPage();
             guiLogic = new GUILogic();
             frame.NavigationService.Navigate(queryPage);
+        }
+        void OnProcessExit(object sender, EventArgs e)
+        {
+            guiLogic.listenerProcess.Kill();
         }
 
         void queryClick(object o, RoutedEventArgs e)

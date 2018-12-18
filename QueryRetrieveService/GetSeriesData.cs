@@ -1,21 +1,25 @@
 ﻿using Dicom;
 using Dicom.Imaging;
-using Dicom.Network;
-using Listener;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace QueryRetrieveService
 {
     public class GetSeriesData
     {
         public SeriesData seriesData;
+        FileSystemWatcher watcher;
+        Bitmap seriesThumb;
+        static ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+        string imagePath = "";
 
-        public  Bitmap getImage(SeriesResponseQuery series)
+        public BitmapImage getImage(SeriesResponseQuery series)
         {
             ImageLevelQuery query = new ImageLevelQuery(series);
 
@@ -26,10 +30,11 @@ namespace QueryRetrieveService
             ImageResponseQuery image = (ImageResponseQuery)listImages[numImageToDownload];
 
             
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = @"C:\Users\daniele\Documents\Visual Studio 2017\Projects\PacsInterface\GUI\bin\Debug\images";
+            watcher = new FileSystemWatcher();
+            watcher.Path = Constants.imageThumbsFolder;
             watcher.NotifyFilter = NotifyFilters.LastWrite;
             watcher.Filter = "*.*";
+            watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
 
@@ -37,10 +42,37 @@ namespace QueryRetrieveService
             QueryRetrieve q = new QueryRetrieve();
             q.move("IMAGEUSER",image, "Image");
             //WAIT LISTENER
+            
+            bool a = manualResetEvent.WaitOne(4000);
+            if (a == false) MessageBox.Show("timeout");
 
-            var dicomImage = new DicomImage(Path.Combine(watcher.Path,"file.dcm"));
-            Bitmap asd = dicomImage.RenderImage().AsClonedBitmap();
+            watcher.Dispose();
 
+            return loadImageSource();
+        }
+        public QueryObject getSeriesData()
+        {
+            return seriesData;
+        }
+        public BitmapImage loadImageSource()
+        {
+            BitmapImage myBitmapImage = new BitmapImage();
+
+            myBitmapImage.BeginInit();
+            myBitmapImage.UriSource = new Uri(imagePath);
+
+            myBitmapImage.DecodePixelWidth = 200;
+            myBitmapImage.EndInit();
+            return myBitmapImage;
+        }
+
+        private void OnChanged(object sender, FileSystemEventArgs e)
+        {
+            var dicomImage = new DicomImage(Path.Combine(watcher.Path, Constants.tempFileName));
+            seriesThumb = dicomImage.RenderImage().AsClonedBitmap();
+            File.Delete(Path.Combine(watcher.Path, Constants.tempFileName));
+
+            // read data from downloaded image
             PropertyInfo[] p = typeof(SeriesData).GetProperties();
             seriesData = new SeriesData();
             foreach (PropertyInfo prop in p)
@@ -50,17 +82,16 @@ namespace QueryRetrieveService
                 prop.SetValue(seriesData, value);
             }
 
-            return asd;
-        }
-        public QueryObject getSeriesData()
-        {
-            return seriesData;
-        }
+            string patientName = dicomImage.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ','_');
+            string studyDescription = dicomImage.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ', '_').Replace('/','-');
+            string seriesDescription = dicomImage.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ', '_').Replace('/', '-');
 
-
-        private static void OnChanged(object sender, FileSystemEventArgs e)
-        {
-         //   MessageBox.Show("file rated");
+            // save image under studies/thisSeries.thumb
+            string thumbFolder = Path.Combine(GUILogic.readFromFile("databaseFolder"), patientName, studyDescription);
+            Directory.CreateDirectory(thumbFolder);
+            imagePath = Path.Combine(thumbFolder, seriesDescription) + ".jpg";
+            seriesThumb.Save(imagePath);
+            manualResetEvent.Set();
         }
     }
 }

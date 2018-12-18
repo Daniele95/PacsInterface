@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dicom.Log;
 using System.IO;
 using System.Windows;
+using QueryRetrieveService;
 
 namespace Listener
 {
@@ -78,12 +79,10 @@ namespace Listener
             var instanceNumber = request.Dataset.GetValues<string>(DicomTag.InstanceNumber)[0];
             
 
-            var path = Path.GetFullPath(@"./images");
-           // path = Path.Combine(path, patientName, studyDescription, seriesDescription);
+            var path = Path.GetFullPath(Constants.imageThumbsFolder);
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-          //  if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-            path = Path.Combine(path, "file") + ".dcm";
+            path = path+"/"+Constants.tempFileName;
 
             request.File.Save(path);
 

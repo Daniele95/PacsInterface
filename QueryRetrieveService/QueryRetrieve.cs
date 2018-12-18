@@ -116,7 +116,9 @@ namespace QueryRetrieveService
                 RaiseConnectionClosed(queryResponses);
 
             };
-            client.Send("localhost", 11112, false, "USER", "MIOSERVER");
+            try { 
+            client.Send(GUILogic.readFromFile("server"), Int32.Parse(GUILogic.readFromFile("serverPort")), false, GUILogic.readFromFile("thisMachineAE"), GUILogic.readFromFile("serverAE"));
+            } catch(Exception e) { MessageBox.Show("impossible connect to server"); }
 
         }
         
