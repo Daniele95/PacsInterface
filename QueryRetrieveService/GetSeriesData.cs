@@ -21,34 +21,46 @@ namespace QueryRetrieveService
 
         public BitmapImage getImage(SeriesResponseQuery series)
         {
-            ImageLevelQuery query = new ImageLevelQuery(series);
+            try
+            {
+                ImageLevelQuery query = new ImageLevelQuery(series);
 
-            GetQueryResponsesList g = new GetQueryResponsesList();
-            List<QueryObject> listImages = g.getResponsesList(query,"Image");
-
-            int numImageToDownload = (int)(listImages.Count / 2.0f);
-            ImageResponseQuery image = (ImageResponseQuery)listImages[numImageToDownload];
-
-            
-            watcher = new FileSystemWatcher();
-            watcher.Path = Constants.imageThumbsFolder;
-            watcher.NotifyFilter = NotifyFilters.LastWrite;
-            watcher.Filter = "*.*";
-            watcher.Created += new FileSystemEventHandler(OnChanged);
-            watcher.Changed += new FileSystemEventHandler(OnChanged);
-            watcher.EnableRaisingEvents = true;
+                GetQueryResponsesList g = new GetQueryResponsesList();
+                List<QueryObject> listImages = g.getResponsesList(query, "Image");
 
 
-            QueryRetrieve q = new QueryRetrieve();
-            q.move("IMAGEUSER",image, "Image");
-            //WAIT LISTENER
-            
-            bool a = manualResetEvent.WaitOne(4000);
-            if (a == false) MessageBox.Show("timeout");
+                if (listImages.Count > 0)
+                {
+                    int numImageToDownload = (int)(listImages.Count / 2.0f);
+                    ImageResponseQuery image = (ImageResponseQuery)listImages[numImageToDownload];
 
-            watcher.Dispose();
+                    watcher = new FileSystemWatcher();
+                    watcher.Path = Constants.imageThumbsFolder;
+                    watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    watcher.Filter = "*.*";
+                    watcher.Created += new FileSystemEventHandler(OnChanged);
+                    watcher.Changed += new FileSystemEventHandler(OnChanged);
+                    watcher.EnableRaisingEvents = true;
 
-            return loadImageSource();
+                    QueryRetrieve q = new QueryRetrieve();
+                    // il server medico non sa che "IMAGEUSER" deve corrispondere alla mia porta 11117
+
+                    q.move(GUILogic.readFromFile("thisMachineAE"), image, "Image");
+
+                    bool a = manualResetEvent.WaitOne(1000);
+  //                  if (a == false) MessageBox.Show("timeout while waiting for downloaded .dcm");
+
+                    // now wait
+
+                    watcher.Dispose();
+                    return loadImageSource();
+                }
+                else return new BitmapImage();
+            } catch(Exception)
+            {
+                Console.WriteLine("cant get image");
+                return new BitmapImage();
+            }
         }
         public QueryObject getSeriesData()
         {
@@ -68,30 +80,36 @@ namespace QueryRetrieveService
 
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
-            var dicomImage = new DicomImage(Path.Combine(watcher.Path, Constants.tempFileName));
-            seriesThumb = dicomImage.RenderImage().AsClonedBitmap();
-            File.Delete(Path.Combine(watcher.Path, Constants.tempFileName));
-
-            // read data from downloaded image
-            PropertyInfo[] p = typeof(SeriesData).GetProperties();
-            seriesData = new SeriesData();
-            foreach (PropertyInfo prop in p)
+            try
             {
-                var tag = typeof(DicomTag).GetField(prop.Name).GetValue(null);
-                string value = dicomImage.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0];
-                prop.SetValue(seriesData, value);
+                var dicomImage = new DicomImage(Path.Combine(watcher.Path, Constants.tempFileName));
+                seriesThumb = dicomImage.RenderImage().AsClonedBitmap();
+                File.Delete(Path.Combine(watcher.Path, Constants.tempFileName));
+
+                // read data from downloaded image
+                PropertyInfo[] p = typeof(SeriesData).GetProperties();
+                seriesData = new SeriesData();
+                foreach (PropertyInfo prop in p)
+                {
+                    var tag = typeof(DicomTag).GetField(prop.Name).GetValue(null);
+                    string value = dicomImage.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0];
+                    prop.SetValue(seriesData, value);
+                }
+
+                string patientName = dicomImage.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ', '_');
+                string studyDescription = dicomImage.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ', '_').Replace('/', '-');
+                string seriesDescription = dicomImage.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ', '_').Replace('/', '-');
+
+                // save image under studies/thisSeries.thumb
+                string thumbFolder = Path.Combine(GUILogic.readFromFile("databaseFolder"), patientName, studyDescription);
+                Directory.CreateDirectory(thumbFolder);
+                imagePath = Path.Combine(thumbFolder, seriesDescription) + ".jpg";
+                seriesThumb.Save(imagePath);
+                manualResetEvent.Set();
+            } catch(Exception)
+            {
+                Console.WriteLine("dicom has no pixel image data"); 
             }
-
-            string patientName = dicomImage.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ','_');
-            string studyDescription = dicomImage.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ', '_').Replace('/','-');
-            string seriesDescription = dicomImage.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ', '_').Replace('/', '-');
-
-            // save image under studies/thisSeries.thumb
-            string thumbFolder = Path.Combine(GUILogic.readFromFile("databaseFolder"), patientName, studyDescription);
-            Directory.CreateDirectory(thumbFolder);
-            imagePath = Path.Combine(thumbFolder, seriesDescription) + ".jpg";
-            seriesThumb.Save(imagePath);
-            manualResetEvent.Set();
         }
     }
 }

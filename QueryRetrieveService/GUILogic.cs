@@ -14,7 +14,13 @@ namespace QueryRetrieveService
         public Process listenerProcess;
         public GUILogic()
         {
-            imageListener = DicomServer.Create<CStoreSCP>(Int32.Parse(readFromFile("imageListenerPort")));
+            // kill existing listeners
+            Process[] pname = Process.GetProcessesByName("Listener");
+            if (pname.Length != 0)
+                foreach (Process proc in pname)
+                    proc.Kill();
+            
+
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = readFromFile("listener");
@@ -23,7 +29,10 @@ namespace QueryRetrieveService
             startInfo.UseShellExecute = false;
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
 
+
             listenerProcess = Process.Start(startInfo);
+
+            imageListener = DicomServer.Create<CStoreSCP>(Int32.Parse(readFromFile("imageListenerPort")));
         }
 
         public static string readFromFile(string what)
@@ -41,6 +50,7 @@ namespace QueryRetrieveService
                 line = reader.ReadLine();
             }
             reader.Close();
+
             return ret;
         }
 

@@ -16,7 +16,7 @@
             <ListView x:Name="listView" Height="188">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
-                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="onMouseDown" />
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="onMouseDownDoSeriesLevelQuery" />
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
@@ -26,14 +26,14 @@
                 <ImageBrush/>
             </Button.Background>
         </Button>
-        <TextBox x:Name="PatientNameBox" HorizontalAlignment="Left" Height="23" Margin="73,44,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Grid.RowSpan="2"/>
+        <TextBox x:Name="PatientNameBox" HorizontalAlignment="Left" Height="23" Margin="73,44,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Grid.RowSpan="2" TextChanged="PatientNameBox_TextChanged"/>
         <TextBlock x:Name="PatientNameBlock" HorizontalAlignment="Left" Margin="35,44,0,0" TextWrapping="Wrap" Text="Name" VerticalAlignment="Top" Height="23" Width="33" Grid.RowSpan="2"/>
         <TextBlock x:Name="PatientSurNameBlock" HorizontalAlignment="Left" Margin="20,15,0,0" TextWrapping="Wrap" Text="Surname" VerticalAlignment="Top" Height="23" Width="48" Grid.Row="1"/>
         <TextBox x:Name="ModalityBox" HorizontalAlignment="Left" Height="23" Margin="570,43,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Grid.RowSpan="2" RenderTransformOrigin="0.242,0.304"/>
         <TextBlock x:Name="StudyDateBlock" HorizontalAlignment="Left" Margin="215,45,0,0" TextWrapping="Wrap" Text="Study Date Min" VerticalAlignment="Top" Height="22" Width="120" Grid.RowSpan="2"/>
         <TextBlock x:Name="StudyDateBlockEnd" HorizontalAlignment="Left" Margin="215,16,0,0" TextWrapping="Wrap" Text="Study Date Max" VerticalAlignment="Top" Height="22" Width="120" Grid.Row="1"/>
         <TextBlock x:Name="ModalityBlock" HorizontalAlignment="Left" Margin="504,45,0,0" TextWrapping="Wrap" Text="Modality" VerticalAlignment="Top" Height="22" Width="120" Grid.RowSpan="2"/>
-        <DatePicker Name="StudyDateStartPicker" HorizontalAlignment="Left" Margin="335,43,0,0" VerticalAlignment="Top" Grid.RowSpan="2"/>
+        <DatePicker Name="StudyDateStartPicker" HorizontalAlignment="Left" Margin="335,43,0,0" VerticalAlignment="Top" Grid.RowSpan="2" />
         <Button x:Name="button1" Content="Search local" HorizontalAlignment="Left" Margin="272,65.308,0,0" VerticalAlignment="Top" Width="75" Click="onLocalSearchButtonClicked" Grid.Row="1"/>
         <DatePicker x:Name="StudyDateEndPicker" HorizontalAlignment="Left" Margin="335,14.308,0,0" VerticalAlignment="Top" Grid.Row="1"/>
         <TextBox x:Name="PatientSurnameBox" HorizontalAlignment="Left" Height="23" Margin="74,15.308,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Grid.Row="1"/>

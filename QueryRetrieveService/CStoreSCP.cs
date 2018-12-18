@@ -74,9 +74,9 @@ namespace Listener
         {
             Console.WriteLine("request");
             var patientName = request.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ', '_');
-            var studyDescription = request.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ','_');
-            var seriesDescription = request.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ','_');
-            var instanceNumber = request.Dataset.GetValues<string>(DicomTag.InstanceNumber)[0];
+        //    var studyDescription = request.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ','_');
+        //    var seriesDescription = request.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ','_');
+        //    var instanceNumber = request.Dataset.GetValues<string>(DicomTag.InstanceNumber)[0];
             
 
             var path = Path.GetFullPath(Constants.imageThumbsFolder);

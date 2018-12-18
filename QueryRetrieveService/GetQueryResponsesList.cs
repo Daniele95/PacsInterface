@@ -9,19 +9,22 @@ namespace QueryRetrieveService
         static ManualResetEvent manualResetEvent = new ManualResetEvent(false);
         List<QueryObject> queryResponses = new List<QueryObject>();
 
+        string Level;
         public List<QueryObject> getResponsesList(QueryObject query, string level)
         {
+            Level = level;
             QueryRetrieve retrieveSeries = new QueryRetrieve();
 
             retrieveSeries.OnDatasetArrived += gotADataset;
-            retrieveSeries.OnConnectionClosed += (seriesList) => { gotAllSeries(); };
+            retrieveSeries.OnConnectionClosed += (seriesList) => { gotAllDatasets(); };
 
-            // LAUNCH QUERY COMMAND:
+            // Launch Query Command
             retrieveSeries.find(query, level);
 
-            manualResetEvent.Reset();
             bool a = manualResetEvent.WaitOne(1000);
             if (a == false) MessageBox.Show("timeout");
+
+            // now wait...
 
             return queryResponses;
         }
@@ -30,7 +33,7 @@ namespace QueryRetrieveService
         {
             queryResponses.Add(s);
         }
-        private void gotAllSeries()
+        private void gotAllDatasets()
         {
             manualResetEvent.Set();
         }

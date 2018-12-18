@@ -8,8 +8,6 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Dicom;
 using QueryRetrieveService;
-using System.Drawing;
-using System.Windows.Media.Imaging;
 
 namespace GUI
 {
@@ -21,6 +19,8 @@ namespace GUI
         {
             this.mainWindow = mainWindow;
             InitializeComponent();
+            StudyDateStartPicker.SelectedDate = new DateTime(2018, 12, 1);
+            StudyDateEndPicker.SelectedDate = DateTime.Today;
         }
 
         private void onLocalSearchButtonClicked(object sender, RoutedEventArgs e)
@@ -79,7 +79,7 @@ namespace GUI
             }), DispatcherPriority.ContextIdle);
         }
 
-        private void onMouseDown(object sender, MouseButtonEventArgs e)
+        private void onMouseDownDoSeriesLevelQuery(object sender, MouseButtonEventArgs e)
         {
             ListViewItem item = sender as ListViewItem;
 
@@ -92,9 +92,7 @@ namespace GUI
 
                 SeriesLevelQuery query = new SeriesLevelQuery((StudyResponseQuery)item.Content);
 
-                List<QueryObject> allSeries = g.getResponsesList(query, "Series");
-
-                
+                List<QueryObject> allSeries = g.getResponsesList(query, "Series");                
                 
                 mainWindow.downloadPage.showQueryResults(allSeries);
             }
@@ -114,7 +112,9 @@ namespace GUI
             return patientFullName;
         }
 
-        
-        
+        private void PatientNameBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
     }
 }

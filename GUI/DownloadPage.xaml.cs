@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using QueryRetrieveService;
@@ -36,8 +31,7 @@ namespace GUI
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                downloadPage.addMenuEntry(seriesData,images,this);
-                
+                downloadPage.addMenuEntries(seriesData,images,this);       
                 
             }), DispatcherPriority.ContextIdle);
 
@@ -53,12 +47,13 @@ namespace GUI
             {
                 var obj = (IDictionary<string, object>)(item.Content);
                 MessageBox.Show(obj["SeriesInstanceUID"].ToString());
-                //DOWNLOAD!!!!!
+
+                //now download
 
                 QueryObject series = new SeriesResponseQuery(obj["StudyInstanceUID"].ToString(), obj["SeriesInstanceUID"].ToString());
 
                 QueryRetrieve q = new QueryRetrieve();
-                q.move("USER", series, "Series");
+                q.move(GUILogic.readFromFile("thisMachineMainAE"), series, "Series");
 
 
             }
