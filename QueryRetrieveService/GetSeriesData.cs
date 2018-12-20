@@ -3,6 +3,7 @@ using Dicom.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -16,51 +17,48 @@ namespace QueryRetrieveService
         public SeriesData seriesData;
         FileSystemWatcher watcher;
         Bitmap seriesThumb;
-        static ManualResetEvent manualResetEvent = new ManualResetEvent(false);
-        string imagePath = "";
+        GUILogic guiLogic;
 
-        public BitmapImage getImage(SeriesResponseQuery series)
+        public GetSeriesData(GUILogic guiLogic)
         {
-            try
+            this.guiLogic = guiLogic;
+        }
+
+        static ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+        bool isImage = true;
+
+        public BitmapImage downloadImage(SeriesResponseQuery series)
+        {
+            clearFolder(Constants.imageThumbsFolder);
+
+            ImageLevelQuery query = new ImageLevelQuery(series);
+
+            GetQueryResponsesList g = new GetQueryResponsesList();
+            // IMAGE LEVEL QUERY
+            List<QueryObject> listImages = g.getResponsesList(query, "Image");
+
+            if (listImages.Count > 0)
             {
-                ImageLevelQuery query = new ImageLevelQuery(series);
+                int numImageToDownload = (int)(listImages.Count / 2.0f);
+                ImageResponseQuery image = (ImageResponseQuery)listImages[numImageToDownload];
 
-                GetQueryResponsesList g = new GetQueryResponsesList();
-                List<QueryObject> listImages = g.getResponsesList(query, "Image");
+                watch(Constants.imageThumbsFolder);
 
+                QueryRetrieve q = new QueryRetrieve();
+                String path = Path.Combine(Constants.imageThumbsFolder, "singleImage.txt");
+                File.WriteAllText(path, "gotImage");
 
-                if (listImages.Count > 0)
-                {
-                    int numImageToDownload = (int)(listImages.Count / 2.0f);
-                    ImageResponseQuery image = (ImageResponseQuery)listImages[numImageToDownload];
+                //MOVE IMAGE
+                q.move(GUILogic.readFromFile("thisMachineAE"), image, "Image", guiLogic);
+                bool a = manualResetEvent.WaitOne(500);
+                // now wait
 
-                    watcher = new FileSystemWatcher();
-                    watcher.Path = Constants.imageThumbsFolder;
-                    watcher.NotifyFilter = NotifyFilters.LastWrite;
-                    watcher.Filter = "*.*";
-                    watcher.Created += new FileSystemEventHandler(OnChanged);
-                    watcher.Changed += new FileSystemEventHandler(OnChanged);
-                    watcher.EnableRaisingEvents = true;
+                watcher.Dispose();
 
-                    QueryRetrieve q = new QueryRetrieve();
-                    // il server medico non sa che "IMAGEUSER" deve corrispondere alla mia porta 11117
-
-                    q.move(GUILogic.readFromFile("thisMachineAE"), image, "Image");
-
-                    bool a = manualResetEvent.WaitOne(1000);
-  //                  if (a == false) MessageBox.Show("timeout while waiting for downloaded .dcm");
-
-                    // now wait
-
-                    watcher.Dispose();
-                    return loadImageSource();
-                }
-                else return new BitmapImage();
-            } catch(Exception)
-            {
-                Console.WriteLine("cant get image");
-                return new BitmapImage();
+                if (isImage) return loadImageSource();
+                else return null;
             }
+            else return new BitmapImage();
         }
         public QueryObject getSeriesData()
         {
@@ -68,48 +66,118 @@ namespace QueryRetrieveService
         }
         public BitmapImage loadImageSource()
         {
-            BitmapImage myBitmapImage = new BitmapImage();
+            using (MemoryStream memory = new MemoryStream())
+            {
+                BitmapImage myBitmapImage = new BitmapImage();
+                try
+                {
+                    seriesThumb.Save(memory, ImageFormat.Png);
+                    myBitmapImage.BeginInit();
+                    //   myBitmapImage.UriSource = new Uri(Path.GetFullPath(imageJpgPath));
+                    //       myBitmapImage.DecodePixelWidth = 200;
 
-            myBitmapImage.BeginInit();
-            myBitmapImage.UriSource = new Uri(imagePath);
-
-            myBitmapImage.DecodePixelWidth = 200;
-            myBitmapImage.EndInit();
-            return myBitmapImage;
+                    myBitmapImage.StreamSource = memory;
+                    myBitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    myBitmapImage.EndInit();
+                }
+                catch (Exception) { }
+                return myBitmapImage;
+            }
         }
 
-        private void OnChanged(object sender, FileSystemEventArgs e)
+        private void onDicomArrived(object sender, FileSystemEventArgs e)
         {
             try
             {
                 var dicomImage = new DicomImage(Path.Combine(watcher.Path, Constants.tempFileName));
-                seriesThumb = dicomImage.RenderImage().AsClonedBitmap();
-                File.Delete(Path.Combine(watcher.Path, Constants.tempFileName));
-
-                // read data from downloaded image
-                PropertyInfo[] p = typeof(SeriesData).GetProperties();
-                seriesData = new SeriesData();
-                foreach (PropertyInfo prop in p)
+                extractData(dicomImage);
+                try
                 {
-                    var tag = typeof(DicomTag).GetField(prop.Name).GetValue(null);
-                    string value = dicomImage.Dataset.GetValues<string>(DicomTag.Parse(tag.ToString()))[0];
-                    prop.SetValue(seriesData, value);
+                    seriesThumb = dicomImage.RenderImage().AsClonedBitmap();
+                    manualResetEvent.Set();
                 }
-
-                string patientName = dicomImage.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ', '_');
-                string studyDescription = dicomImage.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ', '_').Replace('/', '-');
-                string seriesDescription = dicomImage.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ', '_').Replace('/', '-');
-
-                // save image under studies/thisSeries.thumb
-                string thumbFolder = Path.Combine(GUILogic.readFromFile("databaseFolder"), patientName, studyDescription);
-                Directory.CreateDirectory(thumbFolder);
-                imagePath = Path.Combine(thumbFolder, seriesDescription) + ".jpg";
-                seriesThumb.Save(imagePath);
-                manualResetEvent.Set();
-            } catch(Exception)
-            {
-                Console.WriteLine("dicom has no pixel image data"); 
+                catch (Exception exc)
+                {
+                    isImage = false;
+                }
             }
+            catch (Exception exc)
+            {
+                Console.WriteLine("got this exception: " + exc.Message);
+            }
+        }
+
+        public void extractData(DicomImage dicomImage)
+        {
+            // read data from downloaded image
+            PropertyInfo[] p = typeof(SeriesData).GetProperties();
+            seriesData = new SeriesData();
+            foreach (PropertyInfo prop in p)
+            {
+                var tag = typeof(DicomTag).GetField(prop.Name).GetValue(null);
+
+                string value = "";
+                dicomImage.Dataset.TryGetSingleValue(DicomTag.Parse(tag.ToString()), out value);
+                prop.SetValue(seriesData, value);
+            }
+
+            //    string patientName = dicomImage.Dataset.GetValues<string>(DicomTag.PatientName)[0].Replace(' ', '_');
+            //    string studyDescription = dicomImage.Dataset.GetValues<string>(DicomTag.StudyDescription)[0].Replace(' ', '_').Replace('/', '-');
+            //   string seriesDescription = dicomImage.Dataset.GetValues<string>(DicomTag.SeriesDescription)[0].Replace(' ', '_').Replace('/', '-');
+
+            // save image under studies/thisSeries.thumb
+            //   string thumbFolder = Path.Combine(GUILogic.readFromFile("databaseFolder"), patientName, studyDescription);
+            //    Directory.CreateDirectory(thumbFolder);
+            // manualResetEvent.Set();
+        }
+
+        public void clearFolder(string folder)
+        {
+            DirectoryInfo di = new DirectoryInfo(folder);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                while (IsFileLocked(file)) { }
+                file.Delete();
+            }
+        }
+
+        /// <summary>
+        /// Code by ChrisW -> http://stackoverflow.com/questions/876473/is-there-a-way-to-check-if-a-file-is-in-use
+        /// </summary>
+        protected virtual bool IsFileLocked(FileInfo file)
+        {
+            FileStream stream = null;
+
+            try
+            {
+                stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Close();
+            }
+
+            //file is not locked
+            return false;
+        }
+
+        void watch(string folder)
+        {
+            watcher = new FileSystemWatcher();
+            watcher.Path = folder;
+            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher.Filter = "*.*";
+
+            watcher.Created += new FileSystemEventHandler(onDicomArrived);
+            watcher.Changed += new FileSystemEventHandler(onDicomArrived);
+
+            watcher.EnableRaisingEvents = true;
         }
     }
 }

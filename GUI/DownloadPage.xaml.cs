@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,8 +12,10 @@ namespace GUI
 {
     public partial class DownloadPage : Page
     {
-        public DownloadPage()
+        public MainWindow mainWindow;
+        public DownloadPage(MainWindow mainWindow)
         {
+            this.mainWindow = mainWindow;
             InitializeComponent();
         }
 
@@ -21,19 +24,28 @@ namespace GUI
             // show data gained by image query
             List<BitmapImage> images = new List<BitmapImage>();
             List<QueryObject> seriesData = new List<QueryObject>();
+            bool thereIsImage = false;
 
-            foreach (SeriesResponseQuery series in allSeries)
+            //   foreach (SeriesResponseQuery series in allSeries)
+            //    {
+            SeriesResponseQuery series = (SeriesResponseQuery)allSeries[0];
+            GetSeriesData getSeriesData = new GetSeriesData(mainWindow.guiLogic);
+            BitmapImage imgSource = getSeriesData.downloadImage(series);
+
+            if (imgSource != null)
             {
-                GetSeriesData getSeriesData = new GetSeriesData();
-                images.Add(getSeriesData.getImage(series));
-                seriesData.Add(getSeriesData.getSeriesData());
+                var retrievedSeriesData = getSeriesData.getSeriesData();
+
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (thereIsImage) downloadPage.addMenuEntry(retrievedSeriesData, imgSource, this);
+
+                }), DispatcherPriority.ContextIdle);
+                thereIsImage = true;
             }
 
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                downloadPage.addMenuEntries(seriesData,images,this);       
-                
-            }), DispatcherPriority.ContextIdle);
+            //   }
+
 
         }
 
@@ -53,7 +65,13 @@ namespace GUI
                 QueryObject series = new SeriesResponseQuery(obj["StudyInstanceUID"].ToString(), obj["SeriesInstanceUID"].ToString());
 
                 QueryRetrieve q = new QueryRetrieve();
-                q.move(GUILogic.readFromFile("thisMachineMainAE"), series, "Series");
+
+                GUILogic.clearImageThumbs();
+
+
+                MessageBox.Show("now download: ");
+
+                q.move(GUILogic.readFromFile("thisMachineAE"), series, "Series",mainWindow.guiLogic);
 
 
             }

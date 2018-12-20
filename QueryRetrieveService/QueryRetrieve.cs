@@ -33,7 +33,7 @@ namespace QueryRetrieveService
     {
         List<QueryObject> queryResponses = new List<QueryObject>();
 
-        public void move (string callingAE, QueryObject query, string level)
+        public void move (string callingAE, QueryObject query, string level,GUILogic guiLogic)
         {
             var cmove = new DicomCMoveRequest("","");
 
@@ -86,9 +86,22 @@ namespace QueryRetrieveService
                 DicomTransferSyntax.ImplicitVRLittleEndian,
                 DicomTransferSyntax.ImplicitVRBigEndian);
             client.AdditionalPresentationContexts.AddRange(pcs);
-
+            
             client.AddRequest(cmove);
+            // cicle to kill listener and restart it (thus ending associatio) if move takes too much time
+            bool sendSuccess = false;
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                Thread.Sleep(5000);
+                if(!sendSuccess)
+                {
+                    guiLogic.listenerProcess.Kill();
+                    guiLogic.newProcess();
+                }
+            }).Start();
             client.Send(GUILogic.readFromFile("server"), Int32.Parse(GUILogic.readFromFile("serverPort")), false, GUILogic.readFromFile("thisMachineAE"), GUILogic.readFromFile("serverAE"),1000);
+            sendSuccess = true;
         }
 
         public static void SaveImage(DicomDataset dataset)
@@ -167,8 +180,9 @@ namespace QueryRetrieveService
                 Thread.Sleep(5);
                 RaiseConnectionClosed(queryResponses);
             };
-            try { 
-            client.Send(GUILogic.readFromFile("server"), Int32.Parse(GUILogic.readFromFile("serverPort")), false, GUILogic.readFromFile("thisMachineAE"), GUILogic.readFromFile("serverAE"));
+            try
+            {
+                client.Send(GUILogic.readFromFile("server"), Int32.Parse(GUILogic.readFromFile("serverPort")), false, GUILogic.readFromFile("thisMachineAE"), GUILogic.readFromFile("serverAE"),1000);
             } catch(Exception e) { MessageBox.Show("impossible connect to server"); }
 
         }

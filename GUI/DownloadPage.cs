@@ -18,11 +18,11 @@ namespace GUI
     }
 
     public static class downloadPage
-    { 
-        public static void addMenuEntries(List<QueryObject> allResponses, List<BitmapImage> listImages, DownloadPage downloadPage)
+    {
+        public static void addMenuEntry(QueryObject response, BitmapImage image, DownloadPage downloadPageIstance)
         {
             GridView gridView = new GridView();
-            downloadPage.listView.View = gridView;
+            downloadPageIstance.listView.View = gridView;
 
             List<dynamic> myItems = new List<dynamic>();
             dynamic myItem;
@@ -30,27 +30,28 @@ namespace GUI
 
 
             // Populate the objects with dynamic columns
-            for (var i = 0; i < allResponses.Count;i++)
+            //  for (var i = 0; i < allResponses.Count;i++)
+            //   {
+            myItem = new System.Dynamic.ExpandoObject();
+
+            if (response != null)
             {
-                if (allResponses[i] != null)
+                PropertyInfo[] p = response.GetType().GetProperties();
+                for (int j = 0; j < p.Length; j++)
                 {
-                    var image = listImages[i];
-                    myItem = new System.Dynamic.ExpandoObject();
-
-                    PropertyInfo[] p = allResponses[i].GetType().GetProperties();
-                    for (int j = 0; j < p.Length; j++)
-                    {
-                        myItemValues = (IDictionary<string, object>)myItem;
-                        myItemValues[p[j].Name] = p[j].GetValue(allResponses[i]);
-                    }
-
-                    myItem.Icon = image;
-
-                    myItems.Add(myItem);
+                    myItemValues = (IDictionary<string, object>)myItem;
+                    myItemValues[p[j].Name] = p[j].GetValue(response);
+                    //MessageBox.Show(p[j].GetValue(response).ToString());
                 }
             }
+            myItem.Icon = image;
 
-            if(myItems.Count>0) { 
+            myItems.Add(myItem);
+
+            //  }
+
+            if (myItems.Count > 0)
+            {
 
                 // Assuming that all objects have same columns - using first item to determine the columns
                 List<Column> columns = new List<Column>();
@@ -79,16 +80,17 @@ namespace GUI
                         gridView.Columns.Add(new GridViewColumn
                         {
                             Header = column.Title,
-                            CellTemplate = downloadPage.FindResource("iconTemplate") as DataTemplate
+                            CellTemplate = downloadPageIstance.FindResource("iconTemplate") as DataTemplate
                         });
                     }
                     else
                     {
                         bool a = (column.Title == "StudyInstanceUID" || column.Title == "SeriesInstanceUID");
-                        int testInt = a ? 0 : 1; 
+                        int testInt = a ? 0 : 1;
 
-                         var binding = new Binding(column.SourceField);
-                        gridView.Columns.Add(new GridViewColumn {
+                        var binding = new Binding(column.SourceField);
+                        gridView.Columns.Add(new GridViewColumn
+                        {
                             Header = column.Title,
                             DisplayMemberBinding = binding,
                             Width = 100 * testInt
@@ -101,7 +103,7 @@ namespace GUI
                 // Add all items to the list
                 foreach (dynamic item in myItems)
                 {
-                    downloadPage.listView.Items.Add(item);
+                    downloadPageIstance.listView.Items.Add(item);
                 }
             }
 

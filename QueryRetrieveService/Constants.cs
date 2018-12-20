@@ -10,5 +10,6 @@ namespace QueryRetrieveService
     {
         public static string imageThumbsFolder = @"./images/";
         public static string tempFileName = "file.dcm";
+
     }
 }

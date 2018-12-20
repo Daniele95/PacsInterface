@@ -16,13 +16,14 @@ namespace GUI
             InitializeComponent();
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
             queryPage = new QueryPage(this);
-            downloadPage = new DownloadPage();
+            downloadPage = new DownloadPage(this);
             guiLogic = new GUILogic();
             frame.NavigationService.Navigate(queryPage);
         }
         void OnProcessExit(object sender, EventArgs e)
         {
-            guiLogic.listenerProcess.Kill();
+            if(!guiLogic.listenerProcess.HasExited)
+                guiLogic.listenerProcess.Kill();
         }
 
         void queryClick(object o, RoutedEventArgs e)

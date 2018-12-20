@@ -19,7 +19,7 @@ namespace GUI
         {
             this.mainWindow = mainWindow;
             InitializeComponent();
-            StudyDateStartPicker.SelectedDate = new DateTime(2018, 12, 1);
+            StudyDateStartPicker.SelectedDate = new DateTime(2018, 9, 1);
             StudyDateEndPicker.SelectedDate = DateTime.Today;
         }
 
@@ -40,7 +40,7 @@ namespace GUI
 
             query.StudyDate = new DicomDateRange(start, end);
             query.PatientName = patientFullName(PatientNameBox, PatientSurnameBox);
-            query.Modality = ModalityBox.Text.ToString();
+            query.ModalitiesInStudy = ModalityBox.Text.ToString();
 
             QueryRetrieve retrieveStudy = new QueryRetrieve();
             retrieveStudy.OnDatasetArrived += showQueryResults;

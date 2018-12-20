@@ -26,6 +26,7 @@ namespace QueryRetrieveService
 
             // now wait...
 
+
             return queryResponses;
         }
 
